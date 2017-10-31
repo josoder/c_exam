@@ -6,6 +6,6 @@
 int main() {
     bTree* tree = CreateBTree();
     assert(tree!=NULL);
-    BTreeInsert(tree, NO_VALUE, "test", NULL);
-
+    BTreeInsert(tree, IS_FOLDER, "test", NULL);
+    assert(tree!=NULL);
 }
