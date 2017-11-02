@@ -36,6 +36,8 @@ typedef struct bTree {
 
 bTree* CreateBTree();
 
+bTree* Find();
+
 void FreeBTree(bTree *bt);
 
 void BTreeInsert(bTree *bt, int type, char* name, void* value);

@@ -3,5 +3,5 @@ project(exam)
 
 set(CMAKE_C_STANDARD 99)
 
-set(SOURCE_FILES main.c b_tree.c b_tree.h common.h)
+set(SOURCE_FILES main.c b_tree.c b_tree.h common.h bubble_sort_string.c bubble_sort_string.h)
 add_executable(exam ${SOURCE_FILES})

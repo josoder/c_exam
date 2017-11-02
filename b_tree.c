@@ -73,6 +73,17 @@ void Insert(bTree* bt ,bTNode* new){
     }
 }
 
+/**
+ * Bubble sort array with
+ * @param node
+ */
+void SortChildren(bTNode *node){
+
+}
+
+
+bTree* Find(){}
+
 bTNode* find_max(bTNode *root);
 
 bTNode* find_min(bTNode *root);
