@@ -11,11 +11,32 @@ void TestBubble(){
     }
 }
 
+void TestInsert(bTree* bt){
+    BTreeInsert(bt, IS_FOLDER, "c", NULL);
+    BTreeInsert(bt, IS_FOLDER, "a", NULL);
+    BTreeInsert(bt, IS_FOLDER, "b", NULL);
+}
+
+void StringSplit() {
+    char str[] = "This is a sample string, just testing.";
+    char *p;
+
+    printf("Split \"%s\" in tokens:\n", str);
+
+    p = strtok(str, " ");
+
+    while (p != NULL) {
+        printf("%s\n", p);
+        p = strtok(NULL, " ,");
+    }
+}
+
 
 int main() {
     TestBubble();
     bTree* tree = CreateBTree();
     assert(tree!=NULL);
-    BTreeInsert(tree, IS_FOLDER, "test", NULL);
-    assert(tree!=NULL);
+    TestInsert(tree);
+    PrintBTree(tree);
 }
+

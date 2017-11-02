@@ -17,8 +17,7 @@
  * The root is fixed without values, and all child nodes will be kept sorted alphabetically, in every lvl.
  * Child nodes is kept in dynamic array with the initial size of 10.
  */
-
-typedef struct {
+typedef struct bTNode{
     char* name; // name of the node(key)
     int value; // value (if any)
     char *stringVal; // value (if any)
@@ -34,9 +33,11 @@ typedef struct bTree {
     int bTreeSize;
 } bTree;
 
+void PrintBTree(bTree* bt);
+
 bTree* CreateBTree();
 
-bTree* Find();
+bTree* Find(bTNode* node, char* name);
 
 void FreeBTree(bTree *bt);
 

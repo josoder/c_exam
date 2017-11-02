@@ -4,7 +4,7 @@
 
 #include "b_tree.h"
 
-// Util functions for safe allocation
+// Util functions
 void *MallocSafe(size_t size) {
     void *result;
 
@@ -39,6 +39,8 @@ bTNode* CreateNewNode(bTree* bt ,int valueType) {
     return newNode;
 }
 
+
+
 /**
  * Create a new bTree and return the pointer.
  * Will set root when initializing since it will be fixed without values(only child nodes).
@@ -62,34 +64,96 @@ void BTreeInsert(bTree* bt, int type, char *name, void* val){
     strcpy(new->name, name);
     new->type = type;
 
-    Insert(bt ,new);
-}
-
-void Insert(bTree* bt ,bTNode* new){
     if(bt->root->nrOfChildNodes == 0){
         bt->root->childNodes[0] = new;
         bt->root->nrOfChildNodes++;
         return;
     }
+
+    Insert(bt->root  ,new);
+}
+
+int Compare(bTNode* n1, bTNode* n2){
+    return strcmp(n1->name, n2->name);
+}
+
+
+void PrintNode(bTNode* node){
+    bTNode* tmp;
+
+    if(tmp->childNodes == 0){
+        return;
+    }
+
+    for(int i=0; i<node->nrOfChildNodes; i++){
+        tmp = node->childNodes[i];
+        printf("%s, ", tmp->name);
+    }
+
+    printf("\n");
+}
+
+void PrintBTree(bTree* bt){
+    PrintNode(bt->root);
+}
+
+
+/**
+ * Insert into array and maintain a sorted order.
+ * @param new
+ */
+void Insert(bTNode* current, bTNode* new){
+    int s = current->nrOfChildNodes;
+    int m = current->nrOfChildNodes/2;
+
+
+    if(Compare(new, current->childNodes[m]) > 0){
+        for(int i=m; i<s; i++){
+
+            // update key with new node
+            if(Compare(new, current->childNodes[i]) == 0){
+                return;
+            }
+
+            if (Compare(new, current->childNodes[i]) < 0){
+                memmove(&current->childNodes[i+1], &current->childNodes[i], (s-i)*sizeof(bTNode*));
+                current->nrOfChildNodes++;
+                return;
+            }
+        }
+
+        // if this point is reached the new nodes key is the biggest and just gets appended
+        current->childNodes[s] = new;
+        current->nrOfChildNodes++;
+        return;
+    } else {
+        for(int i=0; i<s; i++){
+            if(Compare(new, current->childNodes[i])== 0){
+                return;
+            }
+
+            if (Compare(new, current->childNodes[i]) < 0){
+                memmove(&current->childNodes[i+1], &current->childNodes[i], (s-i)*sizeof(bTNode*));
+                current->childNodes[i] = new;
+                current->nrOfChildNodes++;
+                return;
+            }
+        }
+    }
 }
 
 /**
- * Bubble sort array with
- * @param node
+ * Search for the given node.
+ * @return
  */
-void SortChildren(bTNode *node){
-
+bTree* Find(bTNode* node, char* key){
+    if(node->nrOfChildNodes==0){
+        printf("%s, is not in this tree", key);
+        return NULL;
+    }
 }
-
-
-bTree* Find(){}
-
-bTNode* find_max(bTNode *root);
-
-bTNode* find_min(bTNode *root);
 
 bTNode* delete(bTNode *root, int data);
 
-bool search(bTNode *root, int data);
 
 
