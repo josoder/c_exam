@@ -42,7 +42,7 @@ bTNode* Find(bTNode* node, char* name);
 
 void FreeBTree(bTree *bt);
 
-void BTreeInsert(bTree *bt, int dots, char* path[dots], int type, char* name, void* value);
+void BTreeInsert(bTree *bt, char** path, int type, char* name, void* value);
 
 void BTreeDelete(bTree* bt ,char** path, int depth);
 
@@ -52,13 +52,15 @@ bTNode* FindPath(bTree* bt, char **path, int depth);
 // Exam specific methods
 char* GetText(bTree* bt, char* key, char* lan);
 
-char* GetString(bTree* bt, char** path, int depth);
+char* GetString(bTree* bt, char** path);
+
+bTNode* FindWithPath(bTree* bt ,char **path);
 
 void Enumerate(bTree *bt, char** path, int depth);
 
 int GetType(bTree *bt, char** path, int type);
 
-int GetInt(bTree *bt, char** path, int depth);
+int GetInt(bTree *bt, char** path);
 
 void* GetValue(bTree *bt, char** path, int depth);
 

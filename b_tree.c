@@ -148,7 +148,7 @@ void Insert(bTNode *current, bTNode *new) {
  * @param name
  * @param val
  */
-void BTreeInsert(bTree *bt, int dots, char *path[dots], int type, char *name, void *val) {
+void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
     bTNode *new = CreateNewNode(bt, type);
     strcpy(new->name, name);
     new->type = type;
@@ -160,11 +160,11 @@ void BTreeInsert(bTree *bt, int dots, char *path[dots], int type, char *name, vo
         new->value = (int) val;
     }
 
-    if (dots == 0) {
+    // If there is no path, insert at root.
+    if (path==NULL) {
         if (bt->root->nrOfChildNodes == 0) {
             bt->root->childNodes[0] = new;
             bt->root->nrOfChildNodes++;
-            bt->root->name = "root";
             return;
         }
 
@@ -172,7 +172,7 @@ void BTreeInsert(bTree *bt, int dots, char *path[dots], int type, char *name, vo
     }
     else {
         // Check if the path exists
-        bTNode *tmp = FindPath(bt, path, dots);
+        bTNode *tmp = FindWithPath(bt, path);
 
         if (tmp != NULL) {
             Insert(tmp, new);
@@ -181,11 +181,13 @@ void BTreeInsert(bTree *bt, int dots, char *path[dots], int type, char *name, vo
 
         // Create the path
         bTNode* parent = bt->root;
-        for(int i=0; i<dots; i++){
+        // the last string on the path is the actual name. That node is already create.
+        while (strcmp(*path, name)!=0){
             tmp = CreateNewNode(bt, IS_FOLDER);
-            tmp->name = path[i];
+            tmp->name = *path;
             Insert(parent, tmp);
-            parent = Find(parent, path[i]); // Needed because if the node already exists, it wont be tmp.
+            parent = Find(parent, *path); // Needed because if the node already exists, it wont be tmp.
+            path++;
         }
         // insert the value in path (path[0].path[1]....path[N].key-value)
         Insert(parent, new);
@@ -292,14 +294,13 @@ char* GetText(bTree* bt, char *key, char *lan){
  * @param depth
  * @return
  */
-char* GetString(bTree* bt, char** path, int depth){
-    bTNode* tmp = FindPath(bt ,path, depth);
+char* GetString(bTree* bt, char** path){
+    bTNode* tmp = FindWithPath(bt ,path);
     if(tmp==NULL){
-        printf("node with key: %s, does not exist on this path..\n", path[depth-1]);
+        printf("node does not exist on this path..\n");
         return NULL;
-    }
-    else if(tmp->type != IS_STRING){
-        printf("node with key: %s, does not hold a string value.. \n", path[depth-1]);
+    }   else if(tmp->type != IS_STRING){
+        printf("node does not hold a string value.. \n");
         return NULL;
     }
 
@@ -308,14 +309,14 @@ char* GetString(bTree* bt, char** path, int depth){
     }
 }
 
-int GetInt(bTree *bt, char** path, int depth){
-    bTNode* tmp = FindPath(bt ,path, depth);
+int GetInt(bTree *bt, char** path){
+    bTNode* tmp = FindWithPath(bt ,path);
     if(tmp==NULL){
-        printf("node with key: %s, does not exist on this path..\n", path[depth-1]);
+        printf("node does not exist on this path..\n");
         return NULL;
     }
     else if(tmp->type != IS_NUMERIC){
-        printf("node with key: %s, does not hold a numeric value.. \n", path[depth-1]);
+        printf("node does not hold a numeric value.. \n");
         return NULL;
     }
 
@@ -539,6 +540,18 @@ void DeleteNode(bTNode *parent, char* key){
     if(parent->nrOfChildNodes==0){
         DeleteNode(parent->parent, parent->name);
     }
+}
+
+bTNode* FindWithPath(bTree* bt, char **path){
+    bTNode* tmp = bt->root;
+    while(strcmp(*path, END_OF_PATH)!=0){
+        tmp = Find(tmp, *path);
+        if(tmp == NULL){
+            return NULL;
+        }
+        path++;
+    }
+    return tmp;
 }
 
 bTNode* FindPath(bTree* bt ,char **path, int depth){
