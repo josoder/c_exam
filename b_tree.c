@@ -171,7 +171,7 @@ void BTreeInsert(bTree *bt, int dots, char *path[dots], int type, char *name, vo
     }
     else {
         // Check if the path exists
-        bTNode *tmp = FindPath(bt, path, dots, path[dots - 1]);
+        bTNode *tmp = FindPath(bt, path, dots);
 
         if (tmp != NULL) {
             Insert(tmp, new);
@@ -229,18 +229,9 @@ void PrintBTree(bTree *bt) {
 
 
 void ReplaceValue(bTNode *old, bTNode *new){
-    // If the new value is of a different type(string or int) change the old nodes type.
+    // If the new value is of a different type print error message
     if(old->type != new->type){
-        if(new->type == IS_STRING){
-            old->stringVal = (char*) MallocSafe(sizeof(char*));
-            memcpy(old->stringVal, new->stringVal, sizeof(new->stringVal));
-            old->type = new->type;
-        }
-        else{
-            free(old->stringVal);
-            old->value = new->value;
-            old->type = new->type;
-        }
+        printf("wrong type");
         FreeNode(new);
         return;
     }
@@ -275,12 +266,10 @@ bTNode* SearchForText(bTNode* node, char* key){
 
 char* GetText(bTree* bt, char *key, char *lan){
     char *path[3] = {"strings", lan, key};
-    bTNode* tmp = FindPath(bt, path, 3, key);
+    bTNode* tmp = FindPath(bt, path, 3);
 
     if(tmp==NULL) {
-        // Make sure that path exist
-
-        tmp = SearchForText(FindPath(bt, NULL, 0, "strings"), key);
+        tmp = SearchForText(Find(bt->root, "strings"), key);
     }
 
     if(tmp!=NULL){
@@ -291,13 +280,60 @@ char* GetText(bTree* bt, char *key, char *lan){
     }
 }
 
-char* GetString(bTree* bt, char** path, int depth, char* key);
+/**
+ * Returns the string value of a node on the given path.
+ * Returns null if it does not exist, or if the node is of the wrong type.
+ * @param bt
+ * @param path
+ * @param depth
+ * @return
+ */
+char* GetString(bTree* bt, char** path, int depth){
+    bTNode* tmp = FindPath(bt ,path, depth);
+    if(tmp==NULL){
+        printf("node with key: %s, does not exist on this path..\n", path[depth-1]);
+        return NULL;
+    }
+    else if(tmp->type != IS_STRING){
+        printf("node with key: %s, does not hold a string value.. \n", path[depth-1]);
+        return NULL;
+    }
+
+    else {
+        return tmp->stringVal;
+    }
+}
+
+int GetInt(bTree *bt, char** path, int depth){
+    bTNode* tmp = FindPath(bt ,path, depth);
+    if(tmp==NULL){
+        printf("node with key: %s, does not exist on this path..\n", path[depth-1]);
+        return NULL;
+    }
+    else if(tmp->type != IS_NUMERIC){
+        printf("node with key: %s, does not hold a numeric value.. \n", path[depth-1]);
+        return NULL;
+    }
+
+    else {
+        return tmp->value;
+    }
+}
 
 void Enumerate(bTree *bt, char** path);
 
-int GetType(bTree *bt, char** path);
+int GetType(bTree *bt, char** path, int depth){
+    bTNode* node = FindPath(bt, path, depth);
+    if(node == NULL){
+        printf("node with key: %s does not exist\n", path[depth-1]);
+        return -1;
+    }
+    return node->type;
+}
 
-void* GetValue(bTree *bt, char** path);
+
+
+void* GetValue(bTree *bt, char** path, int depth);
 
 void SetValue(bTree *bt, char** path, void* value);
 
@@ -377,7 +413,7 @@ void BTreeDelete(bTree* bt ,char** path, int depth){
         tmp = Find(tmp, path[0]);
     }
     else{
-        tmp = FindPath(bt, path, depth, path[depth-1]);
+        tmp = FindPath(bt, path, depth);
     }
 
     if(tmp == NULL) {
@@ -390,9 +426,9 @@ void BTreeDelete(bTree* bt ,char** path, int depth){
 
 }
 
-bTNode* FindPath(bTree* bt ,char **path, int depth, char *key){
+bTNode* FindPath(bTree* bt ,char **path, int depth){
     if(depth==0){
-        return Find(bt->root, key);
+        return Find(bt->root, path[0]);
     }
 
     bTNode* tmp = bt->root;

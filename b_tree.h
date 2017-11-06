@@ -46,19 +46,19 @@ void BTreeInsert(bTree *bt, int dots, char* path[dots], int type, char* name, vo
 
 void BTreeDelete(bTree* bt ,char** path, int depth);
 
-bTNode* FindPath(bTree* bt, char **path, int depth, char *key);
+bTNode* FindPath(bTree* bt, char **path, int depth);
 
 
 // Exam specific methods
 char* GetText(bTree* bt, char* key, char* lan);
 
-char* GetString(bTree* bt, char** path, int depth, char* key);
+char* GetString(bTree* bt, char** path, int depth);
 
 void Enumerate(bTree *bt, char** path);
 
-int GetType(bTree *bt, char** path);
+int GetType(bTree *bt, char** path, int type);
 
-void* GetValue(bTree *bt, char** path);
+int GetInt(bTree *bt, char** path, int depth);
 
 void SetValue(bTree *bt, char** path, void* value);
 

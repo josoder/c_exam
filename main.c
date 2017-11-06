@@ -23,12 +23,12 @@ void TestDelete(bTree* bt){
     // should result in that the whole path gets deleted.
 
     char* path[3] = {"first", "second", "third"};
-    assert(FindPath(bt, path, 3, path[2])!=NULL);
+    assert(FindPath(bt, path, 3)!=NULL);
 
     BTreeDelete(bt, path, 3);
-    assert(FindPath(bt, path, 3, "third")==NULL);
-    assert(FindPath(bt, path, 2, "second") == NULL);
-    assert(FindPath(bt, NULL, 0, "first")==NULL);
+    assert(FindPath(bt, path, 3)==NULL);
+    assert(FindPath(bt, path, 2) == NULL);
+    assert(FindPath(bt, NULL, 0)==NULL);
 }
 
 // Capacity should double when the initial capacity(10) is reached.
@@ -59,7 +59,7 @@ void TestInsertAndReplaceString(bTree* bt){
     assert(strcmp(fromNode, "123")==0);
 }
 
-void TestReplaceSwitchType(bTree* bt){
+void TestReplaceWrongType(bTree* bt){
     char* testKey = "key";
 
     BTreeInsert(bt, 0, NULL, IS_STRING, testKey, "testing");
@@ -72,10 +72,9 @@ void TestReplaceSwitchType(bTree* bt){
 
     BTreeInsert(bt, 0, NULL, IS_NUMERIC, testKey, val);
 
-    int fromNode = Find(bt->root, testKey)->value;
+    // Should still be "testing
+    assert(strcmp(Find(bt->root, testKey)->stringVal, value)==0);
 
-    assert(fromNode == 123);
-    assert(Find(bt->root, testKey)->type==IS_NUMERIC);
 }
 
 void StringSplit() {
@@ -95,9 +94,9 @@ void StringSplit() {
 void TestFindPath(bTree* bt) {
     TestInsert(bt);
     char* path[3] = {"first", "second", "third"};
-    char* name = (FindPath(bt, NULL, 0, "first"))->name;
+    char* name = (FindPath(bt, NULL, 0))->name;
     assert(strcmp(name, "first")==0);
-    name = (FindPath(bt, path, 3, "third"))->name;
+    name = (FindPath(bt, path, 3))->name;
     printf(name);
 }
 
@@ -119,6 +118,27 @@ void TestGetText(bTree* bt){
     assert(germanGreeting!=NULL);
 }
 
+void TestGetType(bTree* bt){
+    char **path[3] = {"strings", "en", "greeting"};
+    assert(GetType(bt, path,3)==IS_STRING);
+    path[2] = "hey!";
+    // Should return -1 when the key does not exist.
+    assert(GetType(bt, path, 3));
+}
+
+void TestGetString(bTree* bt){
+    char **path[3] = {"strings", "en", "greeting"};
+    assert(strcmp(GetString(bt, path, 3), "hello")==0);
+
+    assert(GetString(bt, path, 2)==NULL);
+}
+
+void TestGetInt(bTree* bt){
+    char **path[3] = {"config", "updates", "rate"};
+    BTreeInsert(bt, 2, path, IS_NUMERIC, "rate", 12);
+    PrintBTree(bt);
+    assert(GetInt(bt, path, 3)==12);
+}
 
 
 int main() {
@@ -130,11 +150,15 @@ int main() {
     //PrintBTree(tree);
     //TestSizeIncreasesWhenCapacityIsReached(tree);
     //TestInsertAndReplaceString(tree);
-    //TestReplaceSwitchType(tree);
+    TestReplaceWrongType(tree);
     //TestFreeBTree(tree);
     //TestDelete(tree);
     TestGetText(tree);
     PrintBTree(tree);
+    TestGetType(tree);
     //TestFindPath(tree);
+    TestGetString(tree);
+    TestGetInt(tree);
+    FreeBTree(tree);
 }
 
