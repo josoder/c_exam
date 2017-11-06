@@ -22,7 +22,7 @@ typedef struct bTNode{
     char* name; // name of the node(key)
     int value; // value (if any)
     char *stringVal; // value (if any)
-    int type;
+    int type; // Type of node (folder, numeric or string)
     int childNodeCapacity; // size of the array holding the child nodes
     int nrOfChildNodes; // nr of actual child nodes in the arrays
     struct btNode* parent; // parent node
@@ -54,12 +54,14 @@ char* GetText(bTree* bt, char* key, char* lan);
 
 char* GetString(bTree* bt, char** path, int depth);
 
-void Enumerate(bTree *bt, char** path);
+void Enumerate(bTree *bt, char** path, int depth);
 
 int GetType(bTree *bt, char** path, int type);
 
 int GetInt(bTree *bt, char** path, int depth);
 
-void SetValue(bTree *bt, char** path, void* value);
+void* GetValue(bTree *bt, char** path, int depth);
+
+void SetValue(bTree *bt, char** path, int depth, int type, void* value);
 
 #endif //EXAM_BST_H

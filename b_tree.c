@@ -14,7 +14,7 @@ void *MallocSafe(size_t size) {
         return result;
     }
 
-    printf("error: malloc failed");
+    printf("error: malloc failed\n");
     exit(-1);
 }
 
@@ -48,6 +48,7 @@ bTNode *CreateNewNode(bTree *bt, int valueType) {
 bTree *CreateBTree() {
     bTree *tree = (bTree *) malloc(sizeof(bTree));
     tree->root = CreateNewNode(tree, IS_FOLDER);
+    tree->root->name = "root";
     tree->root->parent = NULL;
 
     return tree;
@@ -195,7 +196,10 @@ int Compare(bTNode *n1, bTNode *n2) {
     return strcmp(n1->name, n2->name);
 }
 
-
+/**
+ * Recursively print the tree from node to leaf-nodes.
+ * @param node
+ */
 void PrintNode(bTNode *node) {
     bTNode* tmp;
 
@@ -231,7 +235,7 @@ void PrintBTree(bTree *bt) {
 void ReplaceValue(bTNode *old, bTNode *new){
     // If the new value is of a different type print error message
     if(old->type != new->type){
-        printf("wrong type");
+        printf("wrong type\n");
         FreeNode(new);
         return;
     }
@@ -320,7 +324,38 @@ int GetInt(bTree *bt, char** path, int depth){
     }
 }
 
-void Enumerate(bTree *bt, char** path);
+/**
+ * Print the nodes in the current folder.(if node is a folder)
+ * @param bt
+ * @param path
+ * @param depth
+ */
+void Enumerate(bTree *bt, char** path, int depth){
+    bTNode *tmp = FindPath(bt, path, depth);
+
+    if(tmp == NULL){
+        printf("node %s, does not exist.\n", path[depth-1]);
+        return;
+    } else if(tmp->type != IS_FOLDER){
+        if(tmp->type == IS_STRING){
+            printf("%s : %s\n", tmp->name, tmp->stringVal);
+        } else{
+            printf("%s : %d\n", tmp->name, tmp->value);
+        }
+
+        return;
+    }
+
+    bTNode** children = tmp->childNodes;
+    for(int i=0; i<tmp->nrOfChildNodes; i++) {
+        if(children[i]->type == IS_STRING){
+            printf("%s : %s\n", children[i]->name, children[i]->stringVal);
+        } else if(children[i]->type==IS_NUMERIC){
+            printf("%s : %d\n", children[i]->name, children[i]->value);
+        }
+    }
+
+}
 
 int GetType(bTree *bt, char** path, int depth){
     bTNode* node = FindPath(bt, path, depth);
@@ -333,9 +368,46 @@ int GetType(bTree *bt, char** path, int depth){
 
 
 
-void* GetValue(bTree *bt, char** path, int depth);
+void* GetValue(bTree *bt, char** path, int depth){
+    bTNode* tmp = FindPath(bt, path, depth);
 
-void SetValue(bTree *bt, char** path, void* value);
+    if(tmp==NULL){
+        printf("node: %s, does not exist in tree\n", path[depth-1]);
+        return NULL;
+    }
+
+    if(tmp->type==IS_FOLDER){
+        printf("node: %s does not contain a value\n" , path[depth-1]);
+        return NULL;
+    }
+
+    if(tmp->type == IS_NUMERIC){
+        return tmp->value;
+    } else {
+        return tmp->stringVal;
+    }
+
+}
+
+void SetValue(bTree *bt, char** path, int depth, int type, void* value){
+    bTNode* tmp = FindPath(bt, path, depth);
+    if(tmp == NULL){
+        printf("node: %s, does not exist\n", path[depth-1]);
+        return;
+    }
+
+    if(tmp->type != type) {
+        printf("node: %s, is of wrong type\n", path[depth-1]);
+        return;
+    }
+
+    if(type==IS_STRING) {
+        memcpy(tmp->stringVal, value, sizeof(value));
+        return;
+    }
+
+    tmp->value = value;
+}
 
 
 /**
@@ -407,7 +479,6 @@ void FreeNode(bTNode *node){
  */
 void BTreeDelete(bTree* bt ,char** path, int depth){
     bTNode *tmp;
-    tmp = bt->root;
 
     if(depth==0){
         tmp = Find(tmp, path[0]);
@@ -417,7 +488,7 @@ void BTreeDelete(bTree* bt ,char** path, int depth){
     }
 
     if(tmp == NULL) {
-        printf("node does not exist");
+        printf("node does not exist\n");
         return;
     }
     else{
@@ -467,6 +538,15 @@ void DeleteNode(bTNode *parent, char* key){
         memmove(&parent->childNodes[i], &parent->childNodes[i + 1], (s - i) * sizeof(bTNode *));
     }
     parent->nrOfChildNodes--;
+
+    // shrink the size of the array if N<SIZE/2, capacity>10
+    if(parent->childNodeCapacity > 10 && (s*2) < parent->childNodeCapacity){
+        parent->childNodes = realloc(parent->childNodes, (parent->childNodeCapacity/2) * sizeof(bTNode*));
+        parent->childNodeCapacity = parent->childNodeCapacity/2;
+        if(parent->childNodes == NULL){
+            exit(EXIT_FAILURE);
+        }
+    }
 
     if(parent->nrOfChildNodes==0){
         DeleteNode(parent->parent, parent->name);

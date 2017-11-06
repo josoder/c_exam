@@ -25,10 +25,11 @@ void TestDelete(bTree* bt){
     char* path[3] = {"first", "second", "third"};
     assert(FindPath(bt, path, 3)!=NULL);
 
+
     BTreeDelete(bt, path, 3);
+
     assert(FindPath(bt, path, 3)==NULL);
     assert(FindPath(bt, path, 2) == NULL);
-    assert(FindPath(bt, NULL, 0)==NULL);
 }
 
 // Capacity should double when the initial capacity(10) is reached.
@@ -38,9 +39,9 @@ void TestSizeIncreasesWhenCapacityIsReached(bTree* bt){
         sprintf(tmp, "%d", i);
         BTreeInsert(bt, 0, NULL, IS_FOLDER, tmp, NULL);
     }
+
     assert(bt->root->childNodeCapacity == 20);
 }
-
 void TestInsertAndReplaceString(bTree* bt){
     char* testKey = "key";
 
@@ -127,38 +128,68 @@ void TestGetType(bTree* bt){
 }
 
 void TestGetString(bTree* bt){
-    char **path[3] = {"strings", "en", "greeting"};
+    char *path[3] = {"strings", "en", "greeting"};
     assert(strcmp(GetString(bt, path, 3), "hello")==0);
 
     assert(GetString(bt, path, 2)==NULL);
 }
 
 void TestGetInt(bTree* bt){
-    char **path[3] = {"config", "updates", "rate"};
+    char *path[3] = {"config", "updates", "rate"};
     BTreeInsert(bt, 2, path, IS_NUMERIC, "rate", 12);
     PrintBTree(bt);
     assert(GetInt(bt, path, 3)==12);
 }
 
+void TestGetValue(bTree* bt){
+    char *path[3] = {"strings", "en", "greeting"};
+    assert(strcmp(GetValue(bt, path, 3), "hello")==0);
+    path[0] = "config"; path[1] = "updates"; path[2] = "rate";
+    assert(GetValue(bt, path, 3)==12);
+}
+
+void TestSetValue(bTree* bt){
+    char *path[3] = {"strings", "en", "greeting"};
+    SetValue(bt, path, 3, IS_STRING, "hey");
+    assert(strcmp(GetValue(bt, path, 3), "hey")==NULL);
+    path[0] = "config"; path[1] = "updates"; path[2] = "rate";
+    SetValue(bt, path, 3, IS_NUMERIC, 13);
+    // Should print error message. Value should still be 13.
+    SetValue(bt, path, 3, IS_STRING, "thirteen");
+    assert(GetValue(bt, path, 3)==13);
+}
+
+void TestEnumerate(bTree* bt){
+    char *path[3] = {"strings", "en", "what"};
+    BTreeInsert(bt, 2, path, IS_STRING, "what", "ever");
+    Enumerate(bt, path, 2);
+}
 
 int main() {
     bTree* tree = CreateBTree();
     assert(tree!=NULL);
-    //TestInsert(tree);
+    TestInsert(tree);
     //Find(tree->root, "q");
     //printf("\n");
     //PrintBTree(tree);
-    //TestSizeIncreasesWhenCapacityIsReached(tree);
+    TestSizeIncreasesWhenCapacityIsReached(tree);
     //TestInsertAndReplaceString(tree);
-    TestReplaceWrongType(tree);
+    //TestReplaceWrongType(tree);
     //TestFreeBTree(tree);
-    //TestDelete(tree);
-    TestGetText(tree);
-    PrintBTree(tree);
-    TestGetType(tree);
+
+    //TestGetText(tree);
+    //PrintBTree(tree);
+    //TestGetType(tree);
     //TestFindPath(tree);
-    TestGetString(tree);
-    TestGetInt(tree);
+    //TestGetString(tree);
+    //TestGetInt(tree);
+    //TestGetValue(tree);
+    //TestSetValue(tree);
+    //TestEnumerate(tree);
+    TestDelete(tree);
+
+    PrintBTree(tree);
+
     FreeBTree(tree);
 }
 
