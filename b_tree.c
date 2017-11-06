@@ -105,7 +105,7 @@ void Insert(bTNode *current, bTNode *new) {
             }
         }
 
-        // if this point is reached the new nodes key is the biggest and just gets appended
+        // if this point is reached the new node key is the biggest and just gets appended
         new->parent = current;
         current->childNodes[s] = new;
         current->nrOfChildNodes++;
@@ -456,7 +456,7 @@ void FreeSubTree(bTNode* current){
     if(current->type==IS_FOLDER){
         if(current->nrOfChildNodes != 0){
             for(int i=0; i<current->nrOfChildNodes; i++){
-                FreeSubTree(current->childNodes[i]);
+                FreeNode(current->childNodes[i]);
             }
         }
     }
@@ -497,31 +497,18 @@ void BTreeDelete(bTree* bt ,char** path, int depth){
 
 }
 
-bTNode* FindPath(bTree* bt ,char **path, int depth){
-    if(depth==0){
-        return Find(bt->root, path[0]);
-    }
-
-    bTNode* tmp = bt->root;
-    for(int i=0; i<depth; i++){
-        tmp = Find(tmp, path[i]);
-        if(tmp == NULL) {
-            return NULL;
-        }
-    }
-
-    return tmp;
-}
-
+/**
+ * Recursive method, delete the given node from its parent, if parent(folder) becomes empty delete it.
+ * @param parent
+ * @param key
+ */
 void DeleteNode(bTNode *parent, char* key){
-    // If parent folder becomes empty, delete it
-
     bTNode** childNodes = parent->childNodes;
     int s = parent->nrOfChildNodes;
     // find the node to delete, and fix the possible gap in the sorted array
     int i = 0;
     for(; i<s; i++){
-        if(strcmp(childNodes[i], key)==0){
+        if(strcmp(childNodes[i]->name, key)==0){
             bTNode* tmp = childNodes[i];
             childNodes[i] = NULL;
             if(tmp->type==IS_FOLDER) {
@@ -530,6 +517,8 @@ void DeleteNode(bTNode *parent, char* key){
             else{
                 FreeNode(tmp);
             }
+            parent->nrOfChildNodes--;
+            break;
         }
     }
 
@@ -537,7 +526,6 @@ void DeleteNode(bTNode *parent, char* key){
     if(i<(s-1)){
         memmove(&parent->childNodes[i], &parent->childNodes[i + 1], (s - i) * sizeof(bTNode *));
     }
-    parent->nrOfChildNodes--;
 
     // shrink the size of the array if N<SIZE/2, capacity>10
     if(parent->childNodeCapacity > 10 && (s*2) < parent->childNodeCapacity){
@@ -553,3 +541,18 @@ void DeleteNode(bTNode *parent, char* key){
     }
 }
 
+bTNode* FindPath(bTree* bt ,char **path, int depth){
+    if(depth==0){
+        return Find(bt->root, path[0]);
+    }
+
+    bTNode* tmp = bt->root;
+    for(int i=0; i<depth; i++){
+        tmp = Find(tmp, path[i]);
+        if(tmp == NULL) {
+            return NULL;
+        }
+    }
+
+    return tmp;
+}
