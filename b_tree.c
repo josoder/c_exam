@@ -391,15 +391,15 @@ void* GetValue(bTree *bt, char** path){
 
 }
 
-void SetValue(bTree *bt, char** path, int depth, int type, void* value){
-    bTNode* tmp = FindPath(bt, path, depth);
+void SetValue(bTree *bt, char** path, int type, void* value){
+    bTNode* tmp = FindWithPath(bt, path);
     if(tmp == NULL){
-        printf("node: %s, does not exist\n", path[depth-1]);
+        printf("node does not exist\n");
         return;
     }
 
     if(tmp->type != type) {
-        printf("node: %s, is of wrong type\n", path[depth-1]);
+        printf("node is of wrong type\n");
         return;
     }
 

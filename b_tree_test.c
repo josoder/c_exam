@@ -16,10 +16,12 @@ void RunBtreeTests(){
     TestGetString(tree);
     TestGetInt(tree);
     TestGetValue(tree);
-    //TestSetValue(tree);
-    //TestEnumerate(tree);
-    //TestDelete(tree);
+    TestSetValue(tree);
+    TestEnumerate(tree);
+    TestDelete(tree);
 
+    // Should print an empty tree
+    printf("Tree: \n");
     PrintBTree(tree);
 
     FreeBTree(tree);
@@ -27,21 +29,17 @@ void RunBtreeTests(){
 
 
 void TestDelete(bTree* bt){
-    // TestInsert will insert one key-value pair, [k:string, v:"hej!"] in the folder "third",
-    // with the path root.first.second.third.string="hej!".
-    // This means all folders on the given path will be empty after deleting the third one thus
-    // should result in that the whole path gets deleted.
-
-    PrintBTree(bt);
-    char* path[3] = {"strings", "en", END_OF_PATH};
+    char* path[2] = {"strings", END_OF_PATH};
 
 
+    BTreeDelete(bt, path);
+    path[0] = "config";
     BTreeDelete(bt, path);
 
     assert(FindWithPath(bt, path) == NULL);
 }
 
-// Capacity should double when the initial capacity(10) is reached.
+// Capacity should double when the initial capacity C(10) is reached and shrink when N*2<C and C > 10
 void TestSizeIncreasesWhenCapacityIsReached(bTree* bt){
     char tmp[5];
     for(int i=0; i<11; i++){
@@ -162,12 +160,12 @@ void TestGetValue(bTree* bt){
 
 void TestSetValue(bTree* bt){
     char *path[4] = {"strings", "en", "greeting", END_OF_PATH};
-    SetValue(bt, path, 3, IS_STRING, "hey");
+    SetValue(bt, path, IS_STRING, "hey");
     assert(strcmp(GetValue(bt, path), "hey")==NULL);
-    path[0] = "config"; path[1] = "updates"; path[2] = "rate";
-    SetValue(bt, path, 3, IS_NUMERIC, 13);
+    path[0] = "config"; path[1] = "update"; path[2] = "rate";
+    SetValue(bt, path, IS_NUMERIC, 13);
     // Should print error message. Value should still be 13.
-    SetValue(bt, path, 3, IS_STRING, "thirteen");
+    SetValue(bt, path, IS_STRING, "thirteen");
     assert(GetValue(bt, path)==13);
 }
 

@@ -64,6 +64,6 @@ int GetInt(bTree *bt, char** path);
 
 void* GetValue(bTree *bt, char** path);
 
-void SetValue(bTree *bt, char** path, int depth, int type, void* value);
+void SetValue(bTree *bt, char** path, int type, void* value);
 
 #endif //EXAM_BST_H
