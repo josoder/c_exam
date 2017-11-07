@@ -8,9 +8,7 @@
 #include "common.h"
 #include <stdarg.h>
 
-#define IS_FOLDER 0 // is a folder
-#define IS_NUMERIC 1 // holds a numeric value
-#define IS_STRING 2 // holds a string
+
 #define INITIAL_CHILD_CAPACITY 10
 
 /**
@@ -56,7 +54,7 @@ char* GetString(bTree* bt, char** path);
 
 bTNode* FindWithPath(bTree* bt ,char **path);
 
-void Enumerate(bTree *bt, char** path, int depth);
+void Enumerate(bTree *bt, char** path);
 
 int GetType(bTree *bt, char** path, int type);
 

@@ -32,10 +32,6 @@ bTNode *CreateNewNode(bTree *bt, int valueType) {
     newNode->name = (char *) MallocSafe(sizeof(char *));
     newNode->type = valueType;
 
-    if (newNode->type == IS_STRING) {
-        newNode->stringVal = (char *) MallocSafe(sizeof(char *));
-    }
-
     return newNode;
 }
 
@@ -154,7 +150,8 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
     new->type = type;
 
     if (new->type == IS_STRING) {
-        memcpy(new->stringVal, val, sizeof(char *));
+        new->stringVal = (char*) malloc(strlen(val)+1 * sizeof(char));
+        strcpy(new->stringVal, val);
     }
     else {
         new->value = (int) val;
@@ -209,10 +206,10 @@ void PrintNode(bTNode *node) {
     printf("%s ", node->name);
 
     if(node->type==IS_STRING){
-        printf(": %s", node->stringVal);
+        printf(": %s\n", node->stringVal);
     }
     else if(node->type==IS_NUMERIC){
-        printf(": %d", node->value);
+        printf(": %d\n", node->value);
     }
     else{
         printf(" folder: ");
@@ -226,8 +223,6 @@ void PrintNode(bTNode *node) {
     for (int i = 0; i < node->nrOfChildNodes; i++) {
         PrintNode(node->childNodes[i]);
     }
-
-    printf("\n");
 }
 
 void PrintBTree(bTree *bt) {
@@ -332,11 +327,11 @@ int GetInt(bTree *bt, char** path){
  * @param path
  * @param depth
  */
-void Enumerate(bTree *bt, char** path, int depth){
-    bTNode *tmp = FindPath(bt, path, depth);
+void Enumerate(bTree *bt, char** path){
+    bTNode *tmp = FindWithPath(bt, path);
 
     if(tmp == NULL){
-        printf("node %s, does not exist.\n", path[depth-1]);
+        printf("node does not exist.\n");
         return;
     } else if(tmp->type != IS_FOLDER){
         if(tmp->type == IS_STRING){

@@ -106,20 +106,6 @@ void TestReplaceWrongType(bTree* bt){
 
 }
 
-void StringSplit() {
-    char str[] = "This is a sample string, just testing.";
-    char *p;
-
-    printf("Split \"%s\" in tokens:\n", str);
-
-    p = strtok(str, " ");
-
-    while (p != NULL) {
-        printf("%s\n", p);
-        p = strtok(NULL, " ,");
-    }
-}
-
 
 void TestGetText(bTree* bt){
     BTreeInsert(bt, NULL, IS_FOLDER, "strings", NULL);
@@ -172,5 +158,5 @@ void TestSetValue(bTree* bt){
 void TestEnumerate(bTree* bt){
     char *path[3] = {"strings", "en", END_OF_PATH};
     BTreeInsert(bt, path, IS_STRING, "what", "ever");
-    Enumerate(bt, path, 2);
+    Enumerate(bt, path);
 }
