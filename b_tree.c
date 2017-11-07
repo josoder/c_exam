@@ -165,6 +165,7 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
         if (bt->root->nrOfChildNodes == 0) {
             bt->root->childNodes[0] = new;
             bt->root->nrOfChildNodes++;
+            new->parent = bt->root;
             return;
         }
 
@@ -369,16 +370,16 @@ int GetType(bTree *bt, char** path, int depth){
 
 
 
-void* GetValue(bTree *bt, char** path, int depth){
-    bTNode* tmp = FindPath(bt, path, depth);
+void* GetValue(bTree *bt, char** path){
+    bTNode* tmp = FindWithPath(bt, path);
 
     if(tmp==NULL){
-        printf("node: %s, does not exist in tree\n", path[depth-1]);
+        printf("node does not exist in tree\n");
         return NULL;
     }
 
     if(tmp->type==IS_FOLDER){
-        printf("node: %s does not contain a value\n" , path[depth-1]);
+        printf("node does not contain a value\n");
         return NULL;
     }
 
@@ -475,17 +476,19 @@ void FreeNode(bTNode *node){
 
 /**
  * Delete node on the given path if it exists
+ * If the node to delete is at root level use ["nameOfNode", "END_OF_PATH"]
  * @param path
  * @param depth
  */
-void BTreeDelete(bTree* bt ,char** path, int depth){
+void BTreeDelete(bTree* bt ,char** path){
     bTNode *tmp;
 
-    if(depth==0){
-        tmp = Find(tmp, path[0]);
+    // If path[1] == END_OF_PATH path[0] = name of node
+    if(strcmp(path[1], END_OF_PATH)==0){
+        tmp = Find(bt->root, path[0]);
     }
     else{
-        tmp = FindPath(bt, path, depth);
+        tmp = FindWithPath(bt, path);
     }
 
     if(tmp == NULL) {
@@ -538,7 +541,10 @@ void DeleteNode(bTNode *parent, char* key){
     }
 
     if(parent->nrOfChildNodes==0){
-        DeleteNode(parent->parent, parent->name);
+        // Don't delete the root node..
+        if(parent->parent != NULL) {
+            DeleteNode(parent->parent, parent->name);
+        }
     }
 }
 

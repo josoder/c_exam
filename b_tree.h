@@ -44,7 +44,7 @@ void FreeBTree(bTree *bt);
 
 void BTreeInsert(bTree *bt, char** path, int type, char* name, void* value);
 
-void BTreeDelete(bTree* bt ,char** path, int depth);
+void BTreeDelete(bTree* bt ,char** path);
 
 bTNode* FindPath(bTree* bt, char **path, int depth);
 
@@ -62,7 +62,7 @@ int GetType(bTree *bt, char** path, int type);
 
 int GetInt(bTree *bt, char** path);
 
-void* GetValue(bTree *bt, char** path, int depth);
+void* GetValue(bTree *bt, char** path);
 
 void SetValue(bTree *bt, char** path, int depth, int type, void* value);
 
