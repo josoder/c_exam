@@ -22,14 +22,18 @@ void *MallocSafe(size_t size) {
  * Setting the initial size of the child-array to 10
  * @return
  */
-bTNode *CreateNewNode(bTree *bt, int valueType) {
-    bTNode *newNode = (bTNode *) MallocSafe(sizeof(bTNode));
+bTNode *CreateNewNode(bTree *bt, int valueType, char* name) {
+    bTNode *newNode = (bTNode*) MallocSafe(sizeof(bTNode));
 
-    newNode->childNodeCapacity = INITIAL_CHILD_CAPACITY;
-    newNode->childNodes = (bTNode *) MallocSafe(newNode->childNodeCapacity * sizeof(bTNode *));
+    if(valueType==IS_FOLDER) {
+        newNode->childNodeCapacity = INITIAL_CHILD_CAPACITY;
+        newNode->childNodes = (bTNode **) MallocSafe(newNode->childNodeCapacity * sizeof(bTNode *));
+    }
+
     newNode->nrOfChildNodes = 0;
 
-    newNode->name = (char *) MallocSafe(sizeof(char *));
+    newNode->name = (char*) MallocSafe(strlen(name)+1 * sizeof(char));
+    strcpy(newNode->name, name);
     newNode->type = valueType;
 
     return newNode;
@@ -43,8 +47,7 @@ bTNode *CreateNewNode(bTree *bt, int valueType) {
  */
 bTree *CreateBTree() {
     bTree *tree = (bTree *) malloc(sizeof(bTree));
-    tree->root = CreateNewNode(tree, IS_FOLDER);
-    tree->root->name = "root";
+    tree->root = CreateNewNode(tree, IS_FOLDER, "root");
     tree->root->parent = NULL;
 
     return tree;
@@ -83,11 +86,13 @@ void Insert(bTNode *current, bTNode *new) {
             if (Compare(new, current->childNodes[i]) == 0) {
                 // Do nothing if folder
                 if(new->type == IS_FOLDER){
+                    FreeNode(new);
                     return;
                 }
                     // Replace the value
                 else{
                     ReplaceValue(current->childNodes[i], new);
+                    FreeNode(new);
                     return;
                 }
             }
@@ -109,16 +114,19 @@ void Insert(bTNode *current, bTNode *new) {
     }
     else {
         for (int i = 0; i < s; i++) {
-            // update key with new node
             bTNode *child = current->childNodes[i];
+
+            // if the node already exists
             if (strcmp(new->name, child->name) == 0) {
                 // Do nothing if folder
                 if (new->type == IS_FOLDER) {
+                    FreeNode(new);
                     return;
                 }
                     // Replace the value
                 else {
                     ReplaceValue(current->childNodes[i], new);
+                    FreeNode(new);
                     return;
                 }
             }
@@ -145,8 +153,7 @@ void Insert(bTNode *current, bTNode *new) {
  * @param val
  */
 void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
-    bTNode *new = CreateNewNode(bt, type);
-    strcpy(new->name, name);
+    bTNode *new = CreateNewNode(bt, type, name);
     new->type = type;
 
     if (new->type == IS_STRING) {
@@ -169,7 +176,7 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
         Insert(bt->root, new);
     }
     else {
-        // Check if the path exists
+        // Check if the node exist
         bTNode *tmp = FindWithPath(bt, path);
 
         if (tmp != NULL) {
@@ -179,12 +186,15 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
 
         // Create the path
         bTNode* parent = bt->root;
-        // the last string on the path is the actual name. That node is already create.
         while (strcmp(*path, name)!=0){
-            tmp = CreateNewNode(bt, IS_FOLDER);
-            tmp->name = *path;
-            Insert(parent, tmp);
-            parent = Find(parent, *path); // Needed because if the node already exists, it wont be tmp.
+            tmp = Find(parent, *path);
+            if(tmp==NULL){
+                tmp = CreateNewNode(bt, IS_FOLDER, *path);
+                Insert(parent, tmp);
+            }
+
+
+            parent = tmp;
             path++;
         }
         // insert the value in path (path[0].path[1]....path[N].key-value)
@@ -233,20 +243,16 @@ void PrintBTree(bTree *bt) {
 void ReplaceValue(bTNode *old, bTNode *new){
     // If the new value is of a different type print error message
     if(old->type != new->type){
-        printf("wrong type\n");
-        FreeNode(new);
         return;
     }
 
 
     if(new->type==IS_STRING){
-        memcpy(old->stringVal, new->stringVal, sizeof(char*));
+        strcpy(old->stringVal, new->stringVal);
     }
     else{
         old->value = new->value;
     }
-
-    FreeNode(new);
 }
 
 bTNode* SearchForText(bTNode* node, char* key){
@@ -266,9 +272,23 @@ bTNode* SearchForText(bTNode* node, char* key){
     return NULL;
 }
 
+/**
+ * This function requires strings to be placed in a folder called strings.. If the folder does not exist
+ * NULL is returned.
+ * If the key with the given language prefix does not exist, a recursive search will be started from /string.
+ * @param bt
+ * @param key
+ * @param lan
+ * @return
+ */
 char* GetText(bTree* bt, char *key, char *lan){
-    char *path[3] = {"strings", lan, key};
-    bTNode* tmp = FindPath(bt, path, 3);
+    if(Find(bt->root, "strings")==NULL){
+        puts("could not locate 'strings'-folder..");
+        return NULL;
+    }
+
+    char *path[4] = {"strings", lan, key, END_OF_PATH};
+    bTNode* tmp = FindWithPath(bt, path);
 
     if(tmp==NULL) {
         tmp = SearchForText(Find(bt->root, "strings"), key);
@@ -354,10 +374,9 @@ void Enumerate(bTree *bt, char** path){
 
 }
 
-int GetType(bTree *bt, char** path, int depth){
-    bTNode* node = FindPath(bt, path, depth);
+int GetType(bTree *bt, char** path){
+    bTNode* node = FindWithPath(bt, path);
     if(node == NULL){
-        printf("node with key: %s does not exist\n", path[depth-1]);
         return -1;
     }
     return node->type;
@@ -441,8 +460,10 @@ bTNode *Find(bTNode* node, char *name) {
     return NULL;
 }
 
+
 void FreeBTree(bTree *bt){
     FreeSubTree(bt->root);
+    free(bt);
 }
 
 /**
@@ -453,7 +474,7 @@ void FreeSubTree(bTNode* current){
     if(current->type==IS_FOLDER){
         if(current->nrOfChildNodes != 0){
             for(int i=0; i<current->nrOfChildNodes; i++){
-                FreeNode(current->childNodes[i]);
+                FreeSubTree(current->childNodes[i]);
             }
         }
     }
@@ -465,7 +486,9 @@ void FreeNode(bTNode *node){
     if(node->type==IS_STRING){
         free(node->stringVal);
     }
+
     free(node->childNodes);
+    free(node->name);
     free(node);
 }
 
@@ -545,6 +568,12 @@ void DeleteNode(bTNode *parent, char* key){
 
 bTNode* FindWithPath(bTree* bt, char **path){
     bTNode* tmp = bt->root;
+
+    if(strcmp(path[1], END_OF_PATH)==0&&strcmp(path[0], "root")==0){
+        return tmp;
+    }
+
+
     while(strcmp(*path, END_OF_PATH)!=0){
         tmp = Find(tmp, *path);
         if(tmp == NULL){
@@ -555,18 +584,3 @@ bTNode* FindWithPath(bTree* bt, char **path){
     return tmp;
 }
 
-bTNode* FindPath(bTree* bt ,char **path, int depth){
-    if(depth==0){
-        return Find(bt->root, path[0]);
-    }
-
-    bTNode* tmp = bt->root;
-    for(int i=0; i<depth; i++){
-        tmp = Find(tmp, path[i]);
-        if(tmp == NULL) {
-            return NULL;
-        }
-    }
-
-    return tmp;
-}

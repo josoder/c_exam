@@ -29,7 +29,6 @@ typedef struct bTNode{
 
 typedef struct bTree {
     bTNode* root;
-    int bTreeSize;
 } bTree;
 
 void PrintBTree(bTree* bt);
@@ -56,7 +55,7 @@ bTNode* FindWithPath(bTree* bt ,char **path);
 
 void Enumerate(bTree *bt, char** path);
 
-int GetType(bTree *bt, char** path, int type);
+int GetType(bTree *bt, char** path);
 
 int GetInt(bTree *bt, char** path);
 

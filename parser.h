@@ -17,6 +17,8 @@ typedef struct keyValue {
     char *stringVal;
 } keyValue;
 
-void PopulateBTree(bTree *bt);
+char* ReadLine(FILE *f, char *buffer);
+
+int ReadFile(char **buffer);
 
 #endif //EXAM_UTILS_H

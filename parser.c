@@ -9,8 +9,6 @@
 #include <ctype.h>
 #include "parser.h"
 
-static char KEY_DELIM = '.';
-static char VAL_DELIM = '=';
 
 
 /**
@@ -55,35 +53,31 @@ void Trim(char *line) {
  * @param f
  * @return
  */
-keyValue *ReadKV(FILE *f) {
+char* ReadLine(FILE *f, char* buff) {
+
     if (f == NULL) {
         printf("error parsing file\n");
         exit(EXIT_FAILURE);
     }
 
-    char *buffer = (char *) malloc(BUFF_SIZE * sizeof(char));
 
-    if (fgets(buffer, BUFF_SIZE, f)) {
-        printf("%s\n", buffer);
+    if (fgets(buff, BUFF_SIZE, f)) {
+        printf("%s\n", buff);
 
-        // separate key and value.. [key] = [value]
-        char *key = strsep(&buffer, "=");
-        char *value = strsep(&buffer, "=");
-        if (key == NULL || value == NULL) {
+        /*
+        k = strsep(&buffer, "=");
+        v = strsep(&buffer, "=");
+        if (k == NULL || v == NULL) {
             printf("Wrong file format\n");
             exit(EXIT_FAILURE);
         }
-        Trim(key);
-        Trim(value);
+         */
+        Trim(buff);
         //puts(key);
         //puts(value);
 
-        keyValue *kv = (keyValue *) malloc(sizeof(keyValue));
 
-        AddK(key, kv);
-        AddValue(value, kv);
-        free(buffer);
-        return kv;
+        return buff;
     }
     else {
         return NULL;
@@ -98,7 +92,7 @@ void AddValue(char *value, keyValue *kv) {
         }
         Trim(value);
         kv->type = IS_STRING;
-        kv->stringVal = (char*) malloc(strlen(value)+1 * sizeof(char));
+        kv->stringVal = value;
         strcpy(kv->stringVal, value);
     }
     else {
@@ -121,28 +115,32 @@ void AddK(char *key, keyValue *kv) {
         }
     }
 
+
     if (depth == 0) {
-        //kv->path = (char **) malloc(2 * sizeof(char *));
-        kv->path[0] = key;
-        kv->name = key;
-        kv->path[1] = END_OF_PATH;
+        kv->path[0] = malloc(strlen(key)+1 * sizeof(char));
+        kv->path[1] = malloc(strlen(END_OF_PATH)+1 * sizeof(char));
+        strcpy(kv->path[0], key);
+        strcpy(kv->path[1], END_OF_PATH);
     }
     else {
-        kv->path = (char **) malloc(depth + 1 * sizeof(char *));
         char *k;
         int i = 0;
         while ((k = strsep(&key, ".")) != NULL) {
-            kv->path[i++] = k;
+            puts(k);
+            kv->path[0] = malloc(strlen(k)+1 * sizeof(char));
+            strcpy(kv->path[0], k);
             //puts(k);
         }
-        kv->path[depth + 1] = END_OF_PATH;
-        kv->name = kv->path[depth];
+        //kv->path[depth + 1] = END_OF_PATH;
+
     }
 
+    kv->name = malloc(strlen(kv->path[depth-1])+1 * sizeof(char));
+    strcpy(kv->name, kv->path[depth-1]);
     //printf("depth: %d", depth);
 }
 
-void PopulateBTree(bTree *bt) {
+int ReadFile(char **buffer) {
     FILE *file;
     file = fopen("../keyvalues.txt", "r");
     if (file == NULL) {
@@ -150,17 +148,24 @@ void PopulateBTree(bTree *bt) {
         exit(EXIT_FAILURE);
     }
 
-    keyValue *kv;
-    while ((kv = ReadKV(file)) != NULL) {
-        if (kv->type == IS_STRING) {
-            BTreeInsert(bt, kv->path, IS_STRING, kv->name, kv->stringVal);
-            free(kv->stringVal);
-        }
-        else {
-            BTreeInsert(bt, kv->path, IS_NUMERIC, kv->name, kv->value);
-        }
-        free(kv);
+
+    puts("Parsing: key-values from file 'keyvalues.txt'. Raw input:\n");
+    int lines=0;
+    char buff[250];
+    while ((ReadLine(file, buff) != NULL)) {
+        strcpy(buffer[lines], buff);
+        lines++;
+        //if (kv->type == IS_STRING) {
+         //   BTreeInsert(bt, kv->path, IS_STRING, kv->name, kv->stringVal);
+        //}
+        //else {
+        //    BTreeInsert(bt, kv->path, IS_NUMERIC, kv->name, kv->value);
+        //}
+        //free(kv);
     }
 
+    puts("Parsing completed.. \n");
+
     fclose(file);
+    return lines;
 }
