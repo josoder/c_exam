@@ -180,7 +180,7 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
         bTNode *tmp = FindWithPath(bt, path);
 
         if (tmp != NULL) {
-            Insert(tmp, new);
+            Insert(tmp->parent, new);
             return;
         }
 
@@ -384,16 +384,14 @@ int GetType(bTree *bt, char** path){
 
 
 
-void* GetValue(bTree *bt, char** path){
+void* GetValue(bTree *bt, char** path, int type){
     bTNode* tmp = FindWithPath(bt, path);
 
     if(tmp==NULL){
-        printf("node does not exist in tree\n");
         return NULL;
     }
 
-    if(tmp->type==IS_FOLDER){
-        printf("node does not contain a value\n");
+    if(type!=tmp->type||tmp->type==IS_FOLDER){
         return NULL;
     }
 
@@ -486,8 +484,11 @@ void FreeNode(bTNode *node){
     if(node->type==IS_STRING){
         free(node->stringVal);
     }
+    if(node->type == IS_FOLDER){
+        free(node->childNodes);
+    }
 
-    free(node->childNodes);
+
     free(node->name);
     free(node);
 }

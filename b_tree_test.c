@@ -8,18 +8,18 @@ void RunBtreeTests(){
     bTree* tree = CreateBTree();
     assert(tree!=NULL);
 
-    //PrintBTree(tree);
+    PrintBTree(tree);
     TestInsertAndReplaceString(tree);
-    //TestReplaceWrongType(tree);
-    //TestGetText(tree);
-    //TestGetInt(tree);
-    //TestGetValue(tree);
-    //TestSetValue(tree);
-    //TestEnumerate(tree);
-    //TestGetString(tree);
-    //TestGetType(tree);
-    //TestDelete(tree);
-    //TestSizeIncreasesWhenCapacityIsReached(tree);
+    TestReplaceWrongType(tree);
+    TestGetText(tree);
+    TestGetInt(tree);
+    TestGetValue(tree);
+    TestSetValue(tree);
+    TestEnumerate(tree);
+    TestGetString(tree);
+    TestGetType(tree);
+    TestDelete(tree);
+    TestSizeIncreasesWhenCapacityIsReached(tree);
 
     // Should print an empty tree
     printf("Tree: \n");
@@ -139,18 +139,18 @@ void TestGetInt(bTree* bt){
 
 void TestGetValue(bTree* bt){
     char *path[4] = {"strings", "en", "greeting", END_OF_PATH};
-    assert(strcmp(GetValue(bt, path), "hello")==0);
+    assert(strcmp(GetValue(bt, path, IS_STRING), "hello")==0);
 }
 
 void TestSetValue(bTree* bt){
     char *path[4] = {"strings", "en", "greeting", END_OF_PATH};
     SetValue(bt, path, IS_STRING, "hey");
-    assert(strcmp(GetValue(bt, path), "hey")==NULL);
+    assert(strcmp(GetValue(bt, path, IS_STRING), "hey")==0);
     path[0] = "config"; path[1] = "update"; path[2] = "rate";
     SetValue(bt, path, IS_NUMERIC, 13);
     // Should print error message. Value should still be 13.
     SetValue(bt, path, IS_STRING, "thirteen");
-    assert(GetValue(bt, path)==13);
+    assert(GetValue(bt, path, IS_NUMERIC)==13);
 }
 
 void TestEnumerate(bTree* bt){

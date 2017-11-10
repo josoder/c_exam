@@ -17,8 +17,14 @@ typedef struct keyValue {
     char *stringVal;
 } keyValue;
 
+void ExtractPath(char *key, char **path);
+
+void Trim(char *key);
+
 char* ReadLine(FILE *f, char *buffer);
 
 int ReadFile(char **buffer);
+
+void ReformatValue(char* value);
 
 #endif //EXAM_UTILS_H

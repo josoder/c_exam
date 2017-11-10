@@ -46,6 +46,18 @@ void Trim(char *line) {
     }
 }
 
+/**
+ * Remove "". (annoying when escaping is needed for assertions)
+ * @param value
+ */
+void ReformatValue(char *value){
+    while(*value!='\0'){
+        if(*value=='"'){
+            *value = ' ';
+        }
+        value++;
+    }
+}
 
 /**
  * Parse a line from a file and store it in a KeyValue struct.
@@ -64,18 +76,7 @@ char* ReadLine(FILE *f, char* buff) {
     if (fgets(buff, BUFF_SIZE, f)) {
         printf("%s\n", buff);
 
-        /*
-        k = strsep(&buffer, "=");
-        v = strsep(&buffer, "=");
-        if (k == NULL || v == NULL) {
-            printf("Wrong file format\n");
-            exit(EXIT_FAILURE);
-        }
-         */
         Trim(buff);
-        //puts(key);
-        //puts(value);
-
 
         return buff;
     }
@@ -107,9 +108,36 @@ void AddValue(char *value, keyValue *kv) {
     }
 }
 
-void AddK(char *key, keyValue *kv) {
+void ExtractPath(char *key, char **path) {
+    char *d = strdup(key);
+
     int depth = 0;
     for (int i = 0; i < strlen(key); i++) {
+        if (key[i] == '.') {
+            depth++;
+        }
+    }
+
+
+    if (depth == 0) {
+        path[0] = key;
+        path[1] = END_OF_PATH;
+    } else {
+        char *k;
+        int i = 0;
+        while ((k = strsep(&key, ".")) != NULL) {
+            path[i++] = k;
+            //puts(k);
+        }
+        path[depth+1] = END_OF_PATH;
+    }
+
+    free(d);
+}
+
+void AddK(char *key, keyValue *kv) {
+    int depth = 0;
+    for (int i = 0; i < strlen(key);i++) {
         if (key[i] == '.') {
             depth++;
         }

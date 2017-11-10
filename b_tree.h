@@ -59,7 +59,7 @@ int GetType(bTree *bt, char** path);
 
 int GetInt(bTree *bt, char** path);
 
-void* GetValue(bTree *bt, char** path);
+void* GetValue(bTree *bt, char** path, int type);
 
 void SetValue(bTree *bt, char** path, int type, void* value);
 
