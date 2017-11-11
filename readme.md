@@ -15,7 +15,7 @@ It will also verify that it works as expected. See sourcecode in main.c for more
 
 ## Description: ##
 Application parses key-value pairs from the file keyvalues.txt and inserts them into a b-tree.
-The file is assumed to have the following format:  path.key = "string" or path.key = int
+The file is assumed to have the following format:  path.key = "string" or path.key = int. <br>
 parser.c provides useful methods for the parsing and manipulation of values.
 The actual data structure is a tree with a dynamic number of nodes.
 The tree includes an inplace sorting mechanism thus all nodes in a given lvl will be sorted.(see tests in main.c)
