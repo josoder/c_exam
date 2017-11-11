@@ -40,7 +40,7 @@ void TestDelete(bTree* bt){
     assert(FindWithPath(bt, path) == NULL);
 }
 
-// Capacity should double when the initial capacity C(10) is reached and shrink when N*2<C and C > 10
+// Capacity should double when the initial capacity C(10) is reached and shrink when (N*2<C && C > 10)
 void TestSizeIncreasesWhenCapacityIsReached(bTree* bt){
     char tmp[5];
     for(int i=0; i<11; i++){
@@ -78,10 +78,6 @@ void TestInsertAndReplaceString(bTree* bt){
     char* fromNode = Find(bt->root, testKey)->stringVal;
 
     assert(strcmp(fromNode, "123")==0);
-
-    //char* path[2] = {"key", END_OF_PATH};
-
-    //BTreeDelete(bt, path);
 }
 
 void TestReplaceWrongType(bTree* bt){
@@ -123,7 +119,8 @@ void TestGetText(bTree* bt){
 void TestGetType(bTree* bt){
     char *path[4] = {"strings", "en", "greeting", END_OF_PATH};
     assert(GetType(bt, path)==IS_STRING);
-    path[2] = "hey!";
+    path[2] = "NADA";
+    assert(GetType(bt, path)==-1);
 }
 
 void TestGetString(bTree* bt){

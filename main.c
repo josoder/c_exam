@@ -1,3 +1,17 @@
+/**
+ * Application parses key-value pairs from the file keyvalues.txt and inserts them into a b-tree.
+ * The file is assumed to have the following format:
+ * path.key = "string" or path.key = int
+ * parser.c provides useful methods for the parsing and manipulation of values.
+ * The actual data structure is a tree with a dynamic number of nodes.
+ * The tree includes an inplace sorting mechanism thus all nodes in a given lvl will be sorted.(see test in this file)
+ * The tree implementation can be found in b_tree.c.
+ * To run tests on b_tree.c, run this application with the parameter treetest i.e. ./exam treetest
+ * Running without param i.e. /exam, will test the application as a whole. It will parse the contents of keyvalue.txt
+ * insert it into the b_tree and perform tests on the major features, proving that they work.
+ */
+
+
 #include <stdio.h>
 #include "b_tree_test.h"
 #include "parser.h"
@@ -18,12 +32,18 @@ bool Sorted(bTNode *node){
     return true;
 }
 
+void IsSorted(bTree *bt){
+    // Check that all levels in tree is sorted
+    bTNode *current = bt->root;
+    AssertSorted(current);
+}
+
 /**
  * Recursively check if current and its child nodes are sorted
  */
 void AssertSorted(bTNode *current){
     if(current->type == IS_FOLDER&&current->nrOfChildNodes!=0){
-        assert(Sorted(current));
+        assert(Sorted(current)==true);
     }
     else {
         return;
@@ -62,12 +82,6 @@ void GetValueType(bTree *bt) {
     assert(GetType(bt, path)==IS_STRING);
 }
 
-void IsSorted(bTree *bt){
-    // Check that all levels in tree is sorted
-    bTNode *current = bt->root;
-    AssertSorted(current);
-}
-
 void DeleteSomeNodes(bTree *bt){
     char* path[4] = {"strings", "no", "text", END_OF_PATH};
     BTreeDelete(bt, path);
@@ -83,15 +97,16 @@ void SetGetValue(bTree *bt){
     char* path[4] = {"strings", "en", "button_cancel", END_OF_PATH};
     char *val = GetValue(bt, path, IS_STRING);
     assert(strcmp(val, "Cancel")==0);
-    // should return NULL
-   // assert(GetValue(bt, path, IS_NUMERIC)==NULL);
+    // should return NULL when asking for wrong type and non existing node
+    assert(GetValue(bt, path, IS_NUMERIC)==NULL);
+    path[3] = "non existing";
+    assert(GetValue(bt, path, path)==NULL);
+    path[0] = "config"; path[1] = "loglevel"; path[2] = END_OF_PATH;
 
-    //SetValue(bt, path, IS_STRING, "cancel2");
-    //assert(strcmp(GetValue(bt, path, IS_STRING), "cancel2")==0);
 
-    SetValue(bt, path, IS_STRING, "Cancel");
-    // should not change the value
-    SetValue(bt, path, IS_NUMERIC, 234);
+    assert(GetValue(bt, path, IS_NUMERIC)==1);
+    SetValue(bt, path, IS_NUMERIC, 12);
+    assert(GetValue(bt, path, IS_NUMERIC)==12);
 }
 
 void GetSomeText(bTree *bt){
@@ -131,7 +146,15 @@ void InsertLine(bTree *bt ,char **path, int type, void* val){
 }
 
 // Set up the tree with key-value pairs parsed from keyvalue.txt
-int main() {
+int main(int argc, char* args[]) {
+    if(argc>1){
+        // mode treetest, will only test the actual tree structure
+        if(strcmp(args[1], "treetest")==0){
+            RunBtreeTests();
+            return 0;
+        }
+    }
+
     // Allocate buffer for reading the key-value pairs
     char** buffer = (char **) malloc(100 * sizeof(char*));
     for(int i=0; i<100; i++){
@@ -143,6 +166,7 @@ int main() {
     // Read lines from file
     int lines = ReadFile(buffer);
 
+    // Need some extra buff/pointers for separation and manipulation of the k-v raw strings.
     char* kB;
     char key[100]; char *k;
     char value[100]; char *v;
@@ -153,16 +177,18 @@ int main() {
         kB = strdup(buffer[i]);
         k = key;
         v = value;
+
         k = strsep(&buffer[i], "=");
         v = strsep(&buffer[i], "=");
         if (k == NULL || v == NULL) {
             printf("Wrong file format\n");
             exit(EXIT_FAILURE);
         } else {
+            // Helper methods, see parser.c for implementation
             Trim(k);
             Trim(v);
             ExtractPath(k, path);
-
+            // assuming strings uses the format: "string"
             if(*v!='"'){
                 char *end = NULL;
                 long val = strtol(v, &end, 10);
@@ -194,25 +220,17 @@ int main() {
 
 
     /**
-     * Run some tests
+     * Run some test to verify that file was successfully parsed and that b_tree works as expected.
      */
-
-    printf("-----Test Enumerate()-----\n \n");
-
+    printf("-----Test Enumerate()      -----\n \n");
     EnumerateLevel(bt);
-
-    printf("\n \n -----Test GetText()-----\n \n");
-
+    printf("\n \n -----Test GetText()  -----\n \n");
     GetSomeText(bt);
-
-    printf("\n \n -----Test Set- and GetValue()-----\n \n");
-
     SetGetValue(bt);
-
-
     GetValueType(bt);
     IsSorted(bt);
     DeleteSomeNodes(bt);
+    printf("\n \n -----Print the tree  -----\n \n");
     PrintBTree(bt);
 
     FreeBTree(bt);

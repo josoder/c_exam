@@ -8,14 +8,6 @@
 #include "common.h"
 #include "b_tree.h"
 
-// used to store parsed data
-typedef struct keyValue {
-    char** path;
-    char* name;
-    int type;
-    int value;
-    char *stringVal;
-} keyValue;
 
 void ExtractPath(char *key, char **path);
 

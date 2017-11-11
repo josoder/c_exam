@@ -1,10 +1,18 @@
-//
-// Created by josoder on 30.10.17.
-//
+/**
+ * Dynamic tree structure. Binds a key to a value(int or string).
+ * The tree has N number of nodes, the initial size will be of size 10. Will be decreased or increased dynamically.
+ * Every level of the tree is kept sorted.
+ * A node can be of type:
+ * folder : Holds no value but a variable number of child nodes,
+ * numeric : Holds an integer value,
+ * string : Holds a string value.
+ *
+ * @author Joakim Söderstrand
+ */
 
 #include "b_tree.h"
 
-// Util functions
+
 void *MallocSafe(size_t size) {
     void *result;
 
@@ -54,7 +62,7 @@ bTree *CreateBTree() {
 }
 
 /**
- * Insert into array and maintain a sorted order.
+ * Insert new node into parent-folder child array
  * @param new
  */
 void Insert(bTNode *current, bTNode *new) {
@@ -77,8 +85,7 @@ void Insert(bTNode *current, bTNode *new) {
     int s = current->nrOfChildNodes;
     int m = current->nrOfChildNodes / 2;
 
-
-
+    // The sorting mechanism
     if (Compare(new, current->childNodes[m]) > 0) {
         for (int i = m; i < s; i++) {
 
@@ -144,7 +151,7 @@ void Insert(bTNode *current, bTNode *new) {
 
 
 /**
- * Insert a node at level N(dots)
+ * Insert a new node on the given path
  * @param bt
  * @param dots
  * @param path
@@ -176,7 +183,7 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
         Insert(bt->root, new);
     }
     else {
-        // Check if the node exist
+        // Check if the node exist, will replace value if it does.
         bTNode *tmp = FindWithPath(bt, path);
 
         if (tmp != NULL) {
@@ -184,7 +191,7 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
             return;
         }
 
-        // Create the path
+        // First check if the sub-path exists, if not, create the folder missing.
         bTNode* parent = bt->root;
         while (strcmp(*path, name)!=0){
             tmp = Find(parent, *path);
@@ -192,8 +199,6 @@ void BTreeInsert(bTree *bt, char **path, int type, char *name, void *val) {
                 tmp = CreateNewNode(bt, IS_FOLDER, *path);
                 Insert(parent, tmp);
             }
-
-
             parent = tmp;
             path++;
         }
@@ -207,12 +212,10 @@ int Compare(bTNode *n1, bTNode *n2) {
 }
 
 /**
- * Recursively print the tree from node to leaf-nodes.
+ * Recursively print the tree from current node to leaf-nodes.
  * @param node
  */
 void PrintNode(bTNode *node) {
-    bTNode* tmp;
-
     printf("%s ", node->name);
 
     if(node->type==IS_STRING){
@@ -235,6 +238,10 @@ void PrintNode(bTNode *node) {
     }
 }
 
+/**
+ * Print the whole tree
+ * @param bt
+ */
 void PrintBTree(bTree *bt) {
     PrintNode(bt->root);
 }
@@ -248,6 +255,7 @@ void ReplaceValue(bTNode *old, bTNode *new){
 
 
     if(new->type==IS_STRING){
+        old->stringVal = realloc(old->stringVal, strlen(new->stringVal)+1);
         strcpy(old->stringVal, new->stringVal);
     }
     else{
@@ -255,6 +263,12 @@ void ReplaceValue(bTNode *old, bTNode *new){
     }
 }
 
+/**
+ * Recursively search search a folder for the node with the given key
+ * @param node
+ * @param key
+ * @return
+ */
 bTNode* SearchForText(bTNode* node, char* key){
     if(node==NULL){
         return NULL;
@@ -342,7 +356,7 @@ int GetInt(bTree *bt, char** path){
 }
 
 /**
- * Print the nodes in the current folder.(if node is a folder)
+ * Print the nodes in the current folder that holds a value.(skip folders)
  * @param bt
  * @param path
  * @param depth
@@ -374,6 +388,12 @@ void Enumerate(bTree *bt, char** path){
 
 }
 
+/**
+ * Return the type of the node or -1 if it does not exist.
+ * @param bt
+ * @param path
+ * @return
+ */
 int GetType(bTree *bt, char** path){
     bTNode* node = FindWithPath(bt, path);
     if(node == NULL){
@@ -382,8 +402,14 @@ int GetType(bTree *bt, char** path){
     return node->type;
 }
 
-
-
+/**
+ * Generic function that returns the value of a given node. Need to specify type!
+ * Null is return if error.
+ * @param bt
+ * @param path
+ * @param type
+ * @return
+ */
 void* GetValue(bTree *bt, char** path, int type){
     bTNode* tmp = FindWithPath(bt, path);
 
@@ -400,9 +426,15 @@ void* GetValue(bTree *bt, char** path, int type){
     } else {
         return tmp->stringVal;
     }
-
 }
 
+/**
+ * Generic method to set the value of a node on the given path.
+ * @param bt
+ * @param path
+ * @param type
+ * @param value
+ */
 void SetValue(bTree *bt, char** path, int type, void* value){
     bTNode* tmp = FindWithPath(bt, path);
     if(tmp == NULL){
@@ -416,7 +448,10 @@ void SetValue(bTree *bt, char** path, int type, void* value){
     }
 
     if(type==IS_STRING) {
-        memcpy(tmp->stringVal, value, sizeof(value));
+        char* new = (char*)value;
+        tmp->stringVal = realloc(tmp->stringVal, strlen(new)+1);
+        strcpy(tmp->stringVal, new);
+        puts(tmp->stringVal);
         return;
     }
 
@@ -425,7 +460,7 @@ void SetValue(bTree *bt, char** path, int type, void* value){
 
 
 /**
- * Search for the given node.
+ * Search for the given node, from the given folder.
  * @return
  */
 bTNode *Find(bTNode* node, char *name) {
@@ -458,39 +493,27 @@ bTNode *Find(bTNode* node, char *name) {
     return NULL;
 }
 
-
-void FreeBTree(bTree *bt){
-    FreeSubTree(bt->root);
-    free(bt);
-}
-
 /**
- * Recursively free current subtree
+ * Find with path
+ * @param bt
+ * @param path
  * @return
  */
-void FreeSubTree(bTNode* current){
-    if(current->type==IS_FOLDER){
-        if(current->nrOfChildNodes != 0){
-            for(int i=0; i<current->nrOfChildNodes; i++){
-                FreeSubTree(current->childNodes[i]);
-            }
+bTNode* FindWithPath(bTree* bt, char **path){
+    bTNode* tmp = bt->root;
+
+    if(strcmp(path[1], END_OF_PATH)==0&&strcmp(path[0], "root")==0){
+        return tmp;
+    }
+
+    while(strcmp(*path, END_OF_PATH)!=0){
+        tmp = Find(tmp, *path);
+        if(tmp == NULL){
+            return NULL;
         }
+        path++;
     }
-
-    FreeNode(current);
-}
-
-void FreeNode(bTNode *node){
-    if(node->type==IS_STRING){
-        free(node->stringVal);
-    }
-    if(node->type == IS_FOLDER){
-        free(node->childNodes);
-    }
-
-
-    free(node->name);
-    free(node);
+    return tmp;
 }
 
 /**
@@ -567,21 +590,39 @@ void DeleteNode(bTNode *parent, char* key){
     }
 }
 
-bTNode* FindWithPath(bTree* bt, char **path){
-    bTNode* tmp = bt->root;
-
-    if(strcmp(path[1], END_OF_PATH)==0&&strcmp(path[0], "root")==0){
-        return tmp;
-    }
-
-
-    while(strcmp(*path, END_OF_PATH)!=0){
-        tmp = Find(tmp, *path);
-        if(tmp == NULL){
-            return NULL;
+/**
+* Recursively free current subtree
+* @return
+*/
+void FreeSubTree(bTNode* current){
+    if(current->type==IS_FOLDER){
+        if(current->nrOfChildNodes != 0){
+            for(int i=0; i<current->nrOfChildNodes; i++){
+                FreeSubTree(current->childNodes[i]);
+            }
         }
-        path++;
     }
-    return tmp;
+
+    FreeNode(current);
 }
+
+void FreeNode(bTNode *node){
+    if(node->type==IS_STRING){
+        free(node->stringVal);
+    }
+    if(node->type == IS_FOLDER){
+        free(node->childNodes);
+    }
+
+
+    free(node->name);
+    free(node);
+}
+
+void FreeBTree(bTree *bt){
+    FreeSubTree(bt->root);
+    free(bt);
+}
+
+
 

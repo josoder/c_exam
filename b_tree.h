@@ -13,7 +13,7 @@
 
 /**
  * Definition of a Btree, representing a fictive in-memory db.
- * The root is fixed without values, and all child nodes will be kept sorted alphabetically, in every lvl.
+ * The root is fixed without a value, and all child nodes will be kept sorted alphabetically, in every lvl.
  * Child nodes is kept in dynamic array with the initial size of 10.
  */
 typedef struct bTNode{
@@ -42,9 +42,6 @@ void FreeBTree(bTree *bt);
 void BTreeInsert(bTree *bt, char** path, int type, char* name, void* value);
 
 void BTreeDelete(bTree* bt ,char** path);
-
-bTNode* FindPath(bTree* bt, char **path, int depth);
-
 
 // Exam specific methods
 char* GetText(bTree* bt, char* key, char* lan);
