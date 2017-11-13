@@ -34,4 +34,4 @@ The sorting and dynamic allocation mechanisms are described in the source code o
 b_tree.c and are both tested in main.c and b_tree_test.c so I wont go into any further
 details about them here. 
 
-[exam test](PG3400%20Home%20Exam%202017.pdf)
+[exam text](PG3400%20Home%20Exam%202017.pdf)
